@@ -15,8 +15,10 @@ c.execute("""CREATE TABLE "deliveries" (
 		"delivery_floor" text
 	)""")
 
+# default name of csv file to be read
 fname = "deliveries.csv"
-
+ 
+# open and read the cvs file inserted into tuple 
 with open(fname) as csv_file:
 	csv_reader = csv.reader(csv_file, delimiter = ',')
 	for item in csv_reader:
@@ -39,6 +41,7 @@ def show_all():
 	average_deliveries = 0
 	average_medications = 0
 
+	# selecting all items from deliveries including the rowid
 	c.execute("SELECT rowid, * FROM deliveries")
 
 	items = c.fetchall()
@@ -173,6 +176,7 @@ def show_weekends():
 	print('The average amount of weekend medications is : ' + str(average_medications))
 	print('----------------------------------------------------------------')
 
+# shows the # of meds and # of deliveries made on each date
 def show_dates():
 
 	c.execute("""SELECT delivery_date, delivery_day, sum(delivery_meds), COUNT(delivery_date) FROM deliveries 
@@ -186,7 +190,6 @@ def show_dates():
 	print('----------------------------------------------------------------')
 
 	for item in items:
-		
 		print('{:<12s}{:<12s}{:^8s}{:>12s}'.format(item[0], item[1], str(item[2]), str(item[3])))
 
 	print('----------------------------------------------------------------')
