@@ -5,6 +5,20 @@ conn = sqlite3.connect('delivery.db')
 
 c = conn.cursor()
 
+# variables to count deliveries made during certain times
+eleven_am = 0
+twelve_pm = 0
+one_pm = 0
+two_pm = 0
+three_pm = 0
+four_pm = 0
+five_pm = 0
+six_pm = 0
+invalid_time = 0
+
+# used to index the delivery time
+time_field = 3
+
 # create a table
 c.execute('DROP TABLE IF EXISTS deliveries')
 c.execute("""CREATE TABLE "deliveries" (
@@ -204,17 +218,6 @@ def day_lookup(day):
 	average_deliveries = 0
 	average_medications = 0
 
-	# variables to count deliveries made during certain times
-	eleven_am = 0
-	twelve_pm = 0
-	one_pm = 0
-	two_pm = 0
-	three_pm = 0
-	four_pm = 0
-	five_pm = 0
-	six_pm = 0
-	invalid_time = 0
-
 	c.execute("SELECT rowid, * FROM deliveries WHERE delivery_day = (?)", (day,))
 
 	items = c.fetchall()
@@ -224,28 +227,11 @@ def day_lookup(day):
 	print('----------------------------------------------------------------')
 
 	for item in items:
-		print('{:<10d}{:<10s}{:<12s}{:<8d}{:^8d}{:>12s}'.format(item[0], item[1], item[2], item[3], item[4], item[5]))
+		print('{:<10d}{:<10s}{:<12s}{:<8d}{:^8d}{:>12s}'.format(item[0], item[1], item[2], item[time_field], item[4], item[5]))
 		total_deliveries += 1
 		total_medications += item[4]
 
-		if item[3] >= 1100 and item[3] < 1160:
-			eleven_am += 1
-		elif item[3] >= 1200 and item[3] < 1260:
-			twelve_pm += 1
-		elif item[3] >= 1300 and item[3] < 1360:
-			one_pm += 1
-		elif item[3] >= 1400 and item[3] < 1460:
-			two_pm += 1
-		elif item[3] >= 1500 and item[3] < 1560:
-			three_pm += 1
-		elif item[3] >= 1600 and item[3] < 1660:
-			four_pm += 1
-		elif item[3] >= 1700 and item[3] < 1760:
-			five_pm += 1
-		elif item[3] >= 1800 and item[3] < 1860:
-			six_pm += 1
-		else:
-			invalid_time += 1
+		sort_times(item)
 	
 	# grouping by date because of multiple deliveries on same day
 	c.execute("""SELECT rowid, * FROM deliveries 
@@ -285,17 +271,6 @@ def date_lookup(date):
 	total_deliveries = 0 
 	total_medications = 0
 
-	# variables to count deliveries made during certain times
-	eleven_am = 0
-	twelve_pm = 0
-	one_pm = 0
-	two_pm = 0
-	three_pm = 0
-	four_pm = 0
-	five_pm = 0
-	six_pm = 0
-	invalid_time = 0
-
 	c.execute("SELECT rowid, * FROM deliveries WHERE delivery_date = (?)", (date,))
 
 	items = c.fetchall()
@@ -309,24 +284,7 @@ def date_lookup(date):
 		total_deliveries += 1
 		total_medications += item[4]
 
-		if item[3] >= 1100 and item[3] < 1160:
-			eleven_am += 1
-		elif item[3] >= 1200 and item[3] < 1260:
-			twelve_pm += 1
-		elif item[3] >= 1300 and item[3] < 1360:
-			one_pm += 1
-		elif item[3] >= 1400 and item[3] < 1460:
-			two_pm += 1
-		elif item[3] >= 1500 and item[3] < 1560:
-			three_pm += 1
-		elif item[3] >= 1600 and item[3] < 1660:
-			four_pm += 1
-		elif item[3] >= 1700 and item[3] < 1760:
-			five_pm += 1
-		elif item[3] >= 1800 and item[3] < 1860:
-			six_pm += 1
-		else:
-			invalid_time += 1
+		sort_times(item)
 
 	print('----------------------------------------------------------------')
 	print('The amount of ' + date + ' deliveries at 11am is : ' + str(eleven_am))
@@ -347,42 +305,14 @@ def date_lookup(date):
 # shows the times deliveries were made for all days
 def daily_times():
 
-	# variables to count deliveries made during certain times
-	eleven_am = 0
-	twelve_pm = 0
-	one_pm = 0
-	two_pm = 0
-	three_pm = 0
-	four_pm = 0
-	five_pm = 0
-	six_pm = 0
-	invalid_time = 0
-
 	c.execute("""SELECT rowid, * FROM deliveries
 	""")
 
 	items = c.fetchall()
 
 	for item in items:
-		if item[3] >= 1100 and item[3] < 1160:
-			eleven_am += 1
-		elif item[3] >= 1200 and item[3] < 1260:
-			twelve_pm += 1
-		elif item[3] >= 1300 and item[3] < 1360:
-			one_pm += 1
-		elif item[3] >= 1400 and item[3] < 1460:
-			two_pm += 1
-		elif item[3] >= 1500 and item[3] < 1560:
-			three_pm += 1
-		elif item[3] >= 1600 and item[3] < 1660:
-			four_pm += 1
-		elif item[3] >= 1700 and item[3] < 1760:
-			five_pm += 1
-		elif item[3] >= 1800 and item[3] < 1860:
-			six_pm += 1
-		else:
-			invalid_time += 1
-	
+		sort_times(item)
+		
 	print('The daily amount of deliveries at 11am is : ' + str(eleven_am))
 	print('The daily amount of deliveries at 12pm is : ' + str(twelve_pm))
 	print('The daily amount of deliveries at 1pm is : ' + str(one_pm))
@@ -393,6 +323,48 @@ def daily_times():
 	print('The daily amount of deliveries at 6pm is : ' + str(six_pm))
 	print('You have ' + str(invalid_time) + ' invalid time(s) in your list.')
 
+def sort_times(item):
+
+	global eleven_am
+	global twelve_pm
+	global one_pm
+	global two_pm
+	global three_pm
+	global four_pm
+	global five_pm
+	global six_pm
+	global invalid_time
+	global time_field
+
+	time_map = {
+			"11 am" : eleven_am,
+			"12 pm" : twelve_pm,
+			"1 pm" : one_pm,
+			"2 pm" : two_pm,
+			"3 pm" : three_pm,
+			"4 pm" : four_pm,
+			"5 pm" : five_pm,
+			"6 pm" : six_pm
+	}
+
+	if item[time_field] >= 1100 and item[time_field] < 1160:
+		eleven_am += 1
+	elif item[time_field] >= 1200 and item[time_field] < 1260:
+		twelve_pm += 1
+	elif item[time_field] >= 1300 and item[time_field] < 1360:
+		one_pm += 1
+	elif item[time_field] >= 1400 and item[time_field] < 1460:
+		two_pm += 1
+	elif item[time_field] >= 1500 and item[time_field] < 1560:
+		three_pm += 1
+	elif item[time_field] >= 1600 and item[time_field] < 1660:
+		four_pm += 1
+	elif item[time_field] >= 1700 and item[time_field] < 1760:
+		five_pm += 1
+	elif item[time_field] >= 1800 and item[time_field] < 1860:
+		six_pm += 1
+	else:
+		invalid_time += 1
 
 # add a new record to the table
 def add_one(date, day, time, meds, floor):
