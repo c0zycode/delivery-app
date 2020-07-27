@@ -1,23 +1,47 @@
 import delivery
 
-#command = input('Would you like to show all? (Y/N) : ')
-#if command == 'Y':
-# 	delivery.show_all()
-#else:
-	#delivery.show_weekdays()
+command = raw_input('Would you like to show all? (Y/N) : ')
 
-	#delivery.show_weekends()
+if command == 'Y':
+	command = raw_input('Would you like to sort by date & time? (Y/N) : ')
+	if command == 'Y':
+		delivery.sort_times()
+	else:
+		command = raw_input('Would you like to sort by "location" or "medication"? : ')
+		if command == 'location':
+			delivery.sort_locations()
+		elif command == 'medication':
+			delivery.sort_meds()
+		else:
+			delivery.show_all()
 
-	#delivery.day_lookup('Monday')
-#delivery.day_lookup('Tuesday')
-	#delivery.day_lookup('Wednesday')
-	#delivery.day_lookup('Thursday')
-	#delivery.day_lookup('Friday')
-	#delivery.day_lookup('Saturday')
-	#delivery.day_lookup('Sunday')
-
-delivery.daily_times()
-
-#delivery.date_lookup('21-Jul-20')
-
-	#delivery.show_dates()
+else:
+	command = raw_input('Would you like to see by "grouped", "specific", "time", or "location" data? : ')
+	if command == 'grouped':
+		delivery.show_dates()
+	elif command == 'specific':
+		command = raw_input('Would you like to see by day, weekdays, weekends, or date? : ')
+		if command == 'day':
+			try:
+				command = raw_input('Which day would you like? (Ex. Monday) : ')
+				delivery.day_lookup(command)
+			except: 
+				print("Invalid day. Please try again.")
+		elif command == 'weekdays':
+				delivery.show_weekdays()
+		elif command == 'weekends':
+				delivery.show_weekends()
+		elif command == 'date':
+			try:			
+				command = raw_input('Enter the date using the following format "DD-MM-YY" : ')
+				delivery.date_lookup(command)
+			except:
+				print("Invalid date. Please try again.")
+	elif command == 'time':
+		command = raw_input('Would you like it in chronological order? (Y/N) : ')
+		if command == 'Y':
+			delivery.daily_times()
+		else:
+			delivery.create_time_map()
+	else:
+		delivery.create_location_map()

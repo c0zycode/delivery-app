@@ -1,11 +1,11 @@
 import sqlite3
 import csv
+from operator import itemgetter
 
 conn = sqlite3.connect('delivery.db')
 
 c = conn.cursor()
 
-# variables to count deliveries made during certain times
 eleven_am = 0
 twelve_pm = 0
 one_pm = 0
@@ -15,9 +15,16 @@ four_pm = 0
 five_pm = 0
 six_pm = 0
 invalid_time = 0
-
-# used to index the delivery time
+date_field = 1
+day_field = 2
 time_field = 3
+meds_field = 4
+location_field = 5
+total_deliveries = 0 
+total_medications = 0
+total_days = 0
+average_deliveries = 0
+average_medications = 0
 
 # create a table
 c.execute('DROP TABLE IF EXISTS deliveries')
@@ -48,12 +55,12 @@ conn.commit()
 # query the database and return all records showing totals with average
 def show_all():
 
-	# variables to calculate totals and averages
-	total_deliveries = 0 
-	total_medications = 0
-	total_days = 0
-	average_deliveries = 0
-	average_medications = 0
+	#variables to calculate totals and averages
+	global total_deliveries
+	global total_medications
+	global total_days
+	global average_deliveries
+	global average_medications
 
 	# selecting all items from deliveries including the rowid
 	c.execute("SELECT rowid, * FROM deliveries")
@@ -68,7 +75,7 @@ def show_all():
 	for item in items:
 		print('{:<10d}{:<10s}{:<12s}{:<8d}{:^8d}{:>12s}'.format(item[0], item[1], item[2], item[3], item[4], item[5]))
 		total_deliveries += 1
-		total_medications += item[4]
+		total_medications += item[meds_field]
 
 	# grouping by date because of multiple deliveries on same day
 	c.execute("SELECT rowid, * FROM deliveries GROUP BY delivery_date")
@@ -91,12 +98,12 @@ def show_all():
 # show the deliveries made on weekdays Mon - Fri
 def show_weekdays():
 
-	# variables to calculate totals and averages
-	total_deliveries = 0 
-	total_medications = 0
-	total_days = 0
-	average_deliveries = 0
-	average_medications = 0
+	#variables to calculate totals and averages
+	global total_deliveries
+	global total_medications
+	global total_days
+	global average_deliveries
+	global average_medications
 
 	c.execute("""SELECT rowid, * FROM deliveries 
 				WHERE delivery_day = 'Monday' 
@@ -145,12 +152,12 @@ def show_weekdays():
 # show the deliveries on weekends Sat - Sun
 def show_weekends():
 
-	# variables to calculate totals and averages
-	total_deliveries = 0 
-	total_medications = 0
-	total_days = 0
-	average_deliveries = 0
-	average_medications = 0
+	#variables to calculate totals and averages
+	global total_deliveries
+	global total_medications
+	global total_days
+	global average_deliveries
+	global average_medications
 
 	c.execute("""SELECT rowid, * FROM deliveries 
 				WHERE delivery_day = 'Sunday' 
@@ -211,7 +218,16 @@ def show_dates():
 # show the deliveries made on a specified day of week with delivery times, medication totals, and averages
 def day_lookup(day):
 
-	# variables to calculate totals and averages
+	eleven_am = 0
+	twelve_pm = 0
+	one_pm = 0
+	two_pm = 0
+	three_pm = 0
+	four_pm = 0
+	five_pm = 0
+	six_pm = 0
+	invalid_time = 0
+
 	total_deliveries = 0 
 	total_medications = 0
 	total_days = 0
@@ -229,9 +245,26 @@ def day_lookup(day):
 	for item in items:
 		print('{:<10d}{:<10s}{:<12s}{:<8d}{:^8d}{:>12s}'.format(item[0], item[1], item[2], item[time_field], item[4], item[5]))
 		total_deliveries += 1
-		total_medications += item[4]
+		total_medications += item[meds_field]
 
-		sort_times(item)
+		if item[time_field] / 100 == 11:
+			eleven_am += 1
+		elif item[time_field] / 100 == 12:
+			twelve_pm += 1
+		elif item[time_field] / 100 == 13:
+			one_pm += 1
+		elif item[time_field] / 100 == 14:
+			two_pm += 1
+		elif item[time_field] / 100 == 15:
+			three_pm += 1
+		elif item[time_field] / 100 == 16:
+			four_pm += 1
+		elif item[time_field] / 100 == 17:
+			five_pm += 1
+		elif item[time_field] / 100 >= 18:
+			six_pm += 1
+		else:
+			invalid_time += 1
 	
 	# grouping by date because of multiple deliveries on same day
 	c.execute("""SELECT rowid, * FROM deliveries 
@@ -267,7 +300,16 @@ def day_lookup(day):
 # show the deliveries made on a specified date with delivery times and totals in 'DD-MON-YY' format
 def date_lookup(date):
 
-	# variables to calculate totals and averages
+	eleven_am = 0
+	twelve_pm = 0
+	one_pm = 0
+	two_pm = 0
+	three_pm = 0
+	four_pm = 0
+	five_pm = 0
+	six_pm = 0
+	invalid_time = 0
+
 	total_deliveries = 0 
 	total_medications = 0
 
@@ -282,9 +324,26 @@ def date_lookup(date):
 	for item in items:
 		print('{:<10d}{:<10s}{:<12s}{:<8d}{:^8d}{:>12s}'.format(item[0], item[1], item[2], item[3], item[4], item[5]))
 		total_deliveries += 1
-		total_medications += item[4]
+		total_medications += item[meds_field]
 
-		sort_times(item)
+		if item[time_field] / 100 == 11:
+			eleven_am += 1
+		elif item[time_field] / 100 == 12:
+			twelve_pm += 1
+		elif item[time_field] / 100 == 13:
+			one_pm += 1
+		elif item[time_field] / 100 == 14:
+			two_pm += 1
+		elif item[time_field] / 100 == 15:
+			three_pm += 1
+		elif item[time_field] / 100 == 16:
+			four_pm += 1
+		elif item[time_field] / 100 == 17:
+			five_pm += 1
+		elif item[time_field] / 100 >= 18:
+			six_pm += 1
+		else:
+			invalid_time += 1
 
 	print('----------------------------------------------------------------')
 	print('The amount of ' + date + ' deliveries at 11am is : ' + str(eleven_am))
@@ -301,7 +360,6 @@ def date_lookup(date):
 	print('The total amount of medications on ' + date + ' is : ' + str(total_medications))
 	print('----------------------------------------------------------------')
 
-
 # shows the times deliveries were made for all days
 def daily_times():
 
@@ -311,7 +369,7 @@ def daily_times():
 	items = c.fetchall()
 
 	for item in items:
-		sort_times(item)
+		find_times(item)
 		
 	print('The daily amount of deliveries at 11am is : ' + str(eleven_am))
 	print('The daily amount of deliveries at 12pm is : ' + str(twelve_pm))
@@ -323,10 +381,10 @@ def daily_times():
 	print('The daily amount of deliveries at 6pm is : ' + str(six_pm))
 	print('You have ' + str(invalid_time) + ' invalid time(s) in your list.')
 
-def sort_times(item):
+def find_times(item):
 
-	global eleven_am
-	global twelve_pm
+	global eleven_am 
+	global twelve_pm 
 	global one_pm
 	global two_pm
 	global three_pm
@@ -334,37 +392,155 @@ def sort_times(item):
 	global five_pm
 	global six_pm
 	global invalid_time
-	global time_field
 
-	time_map = {
-			"11 am" : eleven_am,
-			"12 pm" : twelve_pm,
-			"1 pm" : one_pm,
-			"2 pm" : two_pm,
-			"3 pm" : three_pm,
-			"4 pm" : four_pm,
-			"5 pm" : five_pm,
-			"6 pm" : six_pm
-	}
-
-	if item[time_field] >= 1100 and item[time_field] < 1160:
+	if item[time_field] / 100 == 11:
 		eleven_am += 1
-	elif item[time_field] >= 1200 and item[time_field] < 1260:
+	elif item[time_field] / 100 == 12:
 		twelve_pm += 1
-	elif item[time_field] >= 1300 and item[time_field] < 1360:
+	elif item[time_field] / 100 == 13:
 		one_pm += 1
-	elif item[time_field] >= 1400 and item[time_field] < 1460:
+	elif item[time_field] / 100 == 14:
 		two_pm += 1
-	elif item[time_field] >= 1500 and item[time_field] < 1560:
+	elif item[time_field] / 100 == 15:
 		three_pm += 1
-	elif item[time_field] >= 1600 and item[time_field] < 1660:
+	elif item[time_field] / 100 == 16:
 		four_pm += 1
-	elif item[time_field] >= 1700 and item[time_field] < 1760:
+	elif item[time_field] / 100 == 17:
 		five_pm += 1
-	elif item[time_field] >= 1800 and item[time_field] < 1860:
+	elif item[time_field] / 100 >= 18:
 		six_pm += 1
 	else:
 		invalid_time += 1
+
+def create_time_map():
+
+	global time_field
+
+	c.execute("""SELECT rowid, * FROM deliveries
+	""")
+
+	items = c.fetchall()
+
+	di = dict()
+
+	for item in items:
+
+		time = item[time_field]
+
+		military_time = time / 100
+
+		# add am or am to key
+		if military_time < 12:
+			clock_time = (str(military_time) + 'am')
+		elif military_time == 12:
+			clock_time = (str(military_time) + 'pm')
+		else:
+			clock_time = (str(military_time - 12) + 'pm')
+
+		if clock_time in di:
+			di[clock_time] += 1
+		else:
+			di[clock_time] = 1
+
+	tmp = list()
+	for k, v in di.items():
+		newt = (v, k)
+		tmp.append(newt)
+
+	tmp = sorted(tmp, reverse = True)
+
+	print('----------------------------------------------------------------')
+	for k, v in tmp:
+		print('There were ' + str(k) + ' deliveries made at ' + str(v))
+	print('----------------------------------------------------------------')
+
+# counts and shows which floor the drugs were delivered to
+def create_location_map():
+
+	global location_field
+
+	c.execute("""SELECT rowid, * FROM deliveries
+	""")
+
+	items = c.fetchall()
+
+	di = dict()
+
+	for item in items:
+
+		location = item[location_field]
+		
+		if location in di :
+			di[location] = di[location] + 1
+		else:
+			di[location] = 1
+
+	tmp = list()
+	for k, v in di.items():
+		newt = (v, k)
+		tmp.append(newt)
+		
+	tmp = sorted(tmp, reverse = True)
+
+	print('----------------------------------------------------------------')
+	for v, k in tmp:
+		print('There were ' + str(v) + ' deliveries made to ' + str(k))
+	print('----------------------------------------------------------------')
+
+def sort_meds():
+
+	# selecting all items from deliveries including the rowid
+	c.execute("SELECT rowid, * FROM deliveries")
+
+	items = c.fetchall()
+	
+	# formatting
+	print('----------------------------------------------------------------')
+	print('{:<10s}{:<10s}{:<12s}{:<8s}{:<8s}{:^12s}'.format("ID", "DATE ","DAY ","TIME ","# OF MEDS ","UNIT"))
+	print('----------------------------------------------------------------')
+
+	tmp = sorted(items, key = itemgetter(meds_field))
+
+	for item in tmp:
+
+		print('{:<10d}{:<10s}{:<12s}{:<8d}{:^8d}{:>12s}'.format(item[0], item[1], item[2], item[3], item[4], item[5]))
+	print('----------------------------------------------------------------')
+
+def sort_times():
+
+	# selecting all items from deliveries including the rowid
+	c.execute("SELECT rowid, * FROM deliveries")
+
+	items = c.fetchall()
+	
+	# formatting
+	print('----------------------------------------------------------------')
+	print('{:<10s}{:<10s}{:<12s}{:<8s}{:<8s}{:^12s}'.format("ID", "DATE ","DAY ","TIME ","# OF MEDS ","UNIT"))
+	print('----------------------------------------------------------------')
+
+	tmp = sorted(items, key = itemgetter(date_field,time_field))
+
+	for item in tmp:
+		print('{:<10d}{:<10s}{:<12s}{:<8d}{:^8d}{:>12s}'.format(item[0], item[1], item[2], item[3], item[4], item[5]))
+	print('----------------------------------------------------------------')
+
+def sort_locations():
+
+	# selecting all items from deliveries including the rowid
+	c.execute("SELECT rowid, * FROM deliveries")
+
+	items = c.fetchall()
+	
+	# formatting
+	print('----------------------------------------------------------------')
+	print('{:<10s}{:<10s}{:<12s}{:<8s}{:<8s}{:^12s}'.format("ID", "DATE ","DAY ","TIME ","# OF MEDS ","UNIT"))
+	print('----------------------------------------------------------------')
+
+	tmp = sorted(items, key = itemgetter(location_field,date_field))
+
+	for item in tmp:
+		print('{:<10d}{:<10s}{:<12s}{:<8d}{:^8d}{:>12s}'.format(item[0], item[1], item[2], item[3], item[4], item[5]))
+ 	print('----------------------------------------------------------------')
 
 # add a new record to the table
 def add_one(date, day, time, meds, floor):
@@ -375,7 +551,6 @@ def add_one(date, day, time, meds, floor):
 def delete_one(id):
 	with conn:
 		c.execute("DELETE from deliveries WHERE rowid = (?)", id)
-
 
 # add many records to table
 def add_many(list):
